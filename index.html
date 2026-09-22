@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>旅のおかん</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --main-color: #2f9d68;
+            --main-light: #e8f7ef;
+            --background: #f3f5f7;
+            --text: #263238;
+            --sub-text: #69767e;
+        }
+
+        body {
+            margin: 0;
+            background: var(--background);
+            color: var(--text);
+            font-family: "Yu Gothic", "Meiryo", sans-serif;
+        }
+
+        /* 画面全体の状態枠 */
+
+        #statusFrame {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            border: 7px solid #38a169;
+            pointer-events: none;
+        }
+
+        body.status-safe #statusFrame {
+            border-color: #38a169;
+            box-shadow: inset 0 0 20px rgba(56, 161, 105, 0.25);
+        }
+
+        body.status-warning #statusFrame {
+            border-color: #f2c94c;
+            box-shadow: inset 0 0 28px rgba(242, 201, 76, 0.45);
+        }
+
+        body.status-danger #statusFrame {
+            border-color: #e53935;
+            animation: ultraAlert 0.7s infinite;
+        }
+
+        body.status-moving #statusFrame {
+            border-color: #1976d2;
+            box-shadow: inset 0 0 28px rgba(25, 118, 210, 0.35);
+        }
+
+        @keyframes ultraAlert {
+            0%,
+            100% {
+                border-color: #e53935;
+                box-shadow: inset 0 0 20px rgba(229, 57, 53, 0.35);
+            }
+
+            50% {
+                border-color: #ff8a80;
+                box-shadow: inset 0 0 45px rgba(229, 57, 53, 0.80);
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 430px;
+            margin: 0 auto;
+            padding: 22px 16px 110px;
+        }
+
+        .header {
+            margin-bottom: 18px;
+        }
+
+        .app-name {
+            margin: 0;
+            font-size: 27px;
+        }
+
+        .trip-name {
+            margin-top: 12px;
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+        .current-clock {
+            margin-top: 5px;
+            color: var(--sub-text);
+            font-size: 14px;
+        }
+
+        .card {
+            margin-bottom: 16px;
+            padding: 18px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(32, 48, 60, 0.08);
+        }
+
+        .card-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .next-card {
+            border-top: 6px solid var(--main-color);
+        }
+
+        .status-badge {
+            display: inline-block;
+            margin-bottom: 13px;
+            padding: 7px 12px;
+            color: var(--main-color);
+            background: var(--main-light);
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .next-place {
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+        .next-time {
+            margin-top: 5px;
+            color: var(--sub-text);
+        }
+
+        .leave-box {
+            margin-top: 16px;
+            padding: 14px;
+            background: #f6f8fa;
+            border-radius: 14px;
+        }
+
+        .leave-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 9px;
+        }
+
+        .leave-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .leave-label {
+            color: var(--sub-text);
+            font-size: 14px;
+        }
+
+        .leave-value {
+            text-align: right;
+            font-weight: 800;
+        }
+
+        .countdown {
+            margin-top: 14px;
+            padding: 13px;
+            color: var(--main-color);
+            background: var(--main-light);
+            border-radius: 13px;
+            text-align: center;
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+            margin-top: 13px;
+        }
+
+        button,
+        .link-button {
+            min-height: 43px;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 11px;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .primary-button {
+            color: white;
+            background: #1676d2;
+        }
+
+        .success-button {
+            color: white;
+            background: #2f9d68;
+        }
+
+        .secondary-button {
+            color: #263238;
+            background: #edf2f5;
+        }
+
+        .danger-button {
+            color: #b3261e;
+            background: #ffe2df;
+        }
+
+        .full-button {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .link-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: #1676d2;
+            text-decoration: none;
+        }
+
+        .add-button {
+            padding: 8px 11px;
+            min-height: auto;
+            color: #176b48;
+            background: #e3f5eb;
+            font-size: 13px;
+        }
+
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .schedule-item {
+            display: grid;
+            grid-template-columns: 38px 1fr auto;
+            align-items: center;
+            gap: 9px;
+            padding: 11px;
+            background: #f7f9fa;
+            border-radius: 12px;
+        }
+
+        .schedule-icon {
+            font-size: 23px;
+            text-align: center;
+        }
+
+        .schedule-name {
+            font-weight: 800;
+        }
+
+        .schedule-time {
+            margin-top: 3px;
+            color: var(--sub-text);
+            font-size: 13px;
+        }
+
+        .schedule-status {
+            color: #6b7780;
+            font-size: 12px;
+        }
+
+        .schedule-item.current {
+            background: #fff4c8;
+            outline: 2px solid #efc94c;
+        }
+
+        .schedule-item.done {
+            opacity: 0.55;
+        }
+
+        .schedule-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .mini-button {
+            min-height: auto;
+            padding: 6px 9px;
+            font-size: 12px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 46px;
+            border-bottom: 1px solid #edf0f2;
+            cursor: pointer;
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .todo-item input {
+            width: 21px;
+            height: 21px;
+            accent-color: #2f9d68;
+        }
+
+        .todo-item input:checked + span {
+            color: #8a949b;
+            text-decoration: line-through;
+        }
+
+        .todo-progress {
+            margin-top: 12px;
+            color: var(--sub-text);
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .empty-message {
+            padding: 18px 8px;
+            color: var(--sub-text);
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        /* 予定追加・編集画面 */
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(22, 31, 38, 0.62);
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 430px;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 22px;
+        }
+
+        .modal-title {
+            margin: 0 0 17px;
+            font-size: 21px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 11px;
+            border: 1px solid #ccd5da;
+            border-radius: 10px;
+            background: white;
+            font: inherit;
+        }
+
+        .form-note {
+            margin-top: 5px;
+            color: var(--sub-text);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+            margin-top: 18px;
+        }
+
+        .bottom-navigation {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            width: 100%;
+            max-width: 430px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 1px solid #dde3e7;
+            backdrop-filter: blur(8px);
+        }
+
+        .navigation-list {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            margin: 0;
+            padding: 9px 5px 12px;
+            list-style: none;
+        }
+
+        .navigation-item {
+            color: #78838a;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .navigation-icon {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 19px;
+        }
+
+        .navigation-item.active {
+            color: #218657;
+            font-weight: 800;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body.status-danger #statusFrame {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="status-safe">
+
+    <div id="statusFrame"></div>
+
+    <main class="container">
+
+        <header class="header">
+            <h1 class="app-name">🍙 旅のおかん</h1>
+
+            <div class="trip-name">
+                金沢旅行
+            </div>
+
+            <div
+                id="currentClock"
+                class="current-clock"
+            >
+                現在時刻を取得中
+            </div>
+        </header>
+
+        <section class="card next-card">
+            <div class="card-title-row">
+                <h2 class="card-title">
+                    ⏰ 次の予定
+                </h2>
+            </div>
+
+            <div id="nextEventArea"></div>
+        </section>
+
+        <section class="card">
+            <div class="card-title-row">
+                <h2 class="card-title">
+                    📅 予定一覧
+                </h2>
+
+                <button
+                    class="add-button"
+                    type="button"
+                    onclick="openAddModal()"
+                >
+                    ＋ 予定追加
+                </button>
+            </div>
+
+            <div
+                id="scheduleList"
+                class="schedule-list"
+            ></div>
+        </section>
+
+        <section class="card">
+            <div class="card-title-row">
+                <h2 class="card-title">
+                    ✅ 旅行中ToDo
+                </h2>
+            </div>
+
+            <div id="todoList"></div>
+
+            <div
+                id="todoProgress"
+                class="todo-progress"
+            ></div>
+        </section>
+
+    </main>
+
+    <nav class="bottom-navigation">
+        <ul class="navigation-list">
+            <li class="navigation-item active">
+                <span class="navigation-icon">🏠</span>
+                ホーム
+            </li>
+
+            <li class="navigation-item">
+                <span class="navigation-icon">📅</span>
+                行程表
+            </li>
+
+            <li class="navigation-item">
+                <span class="navigation-icon">✅</span>
+                ToDo
+            </li>
+
+            <li class="navigation-item">
+                <span class="navigation-icon">📖</span>
+                しおり
+            </li>
+
+            <li class="navigation-item">
+                <span class="navigation-icon">⚙️</span>
+                設定
+            </li>
+        </ul>
+    </nav>
+
+    <div
+        id="scheduleModal"
+        class="modal"
+    >
+        <div class="modal-content">
+            <h2
+                id="modalTitle"
+                class="modal-title"
+            >
+                予定を追加
+            </h2>
+
+            <form id="scheduleForm">
+
+                <input
+                    id="eventId"
+                    type="hidden"
+                >
+
+                <div class="form-group">
+                    <label
+                        class="form-label"
+                        for="eventIcon"
+                    >
+                        アイコン
+                    </label>
+
+                    <select id="eventIcon">
+                        <option value="🚄">🚄 新幹線・電車</option>
+                        <option value="✈️">✈️ 飛行機</option>
+                        <option value="🚌">🚌 バス</option>
+                        <option value="🚗">🚗 車</option>
+                        <option value="🚶">🚶 徒歩移動</option>
+                        <option value="🍣">🍣 食事</option>
+                        <option value="☕">☕ カフェ</option>
+                        <option value="🍵">🍵 観光</option>
+                        <option value="🏨">🏨 ホテル</option>
+                        <option value="♨️">♨️ 温泉</option>
+                        <option value="🎨">🎨 美術館・体験</option>
+                        <option value="📍">📍 その他</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        class="form-label"
+                        for="eventName"
+                    >
+                        予定名
+                    </label>
+
+                    <input
+                        id="eventName"
+                        type="text"
+                        placeholder="例：ひがし茶屋街"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label
+                        class="form-label"
+                        for="eventDateTime"
+                    >
+                        到着・予約日時
+                    </label>
+
+                    <input
+                        id="eventDateTime"
+                        type="datetime-local"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label
+                        class="form-label"
+                        for="travelMinutes"
+                    >
+                        移動時間
+                    </label>
+
+                    <input
+                        id="travelMinutes"
+                        type="number"
+                        min="0"
+                        max="1440"
+                        value="15"
+                        required
+                    >
+
+                    <div class="form-note">
+                        分単位で入力します。到着時刻から逆算して出発目安を表示します。
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label
+                        class="form-label"
+                        for="mapQuery"
+                    >
+                        地図検索用の場所
+                    </label>
+
+                    <input
+                        id="mapQuery"
+                        type="text"
+                        placeholder="例：ひがし茶屋街"
+                    >
+                </div>
+
+                <div class="modal-actions">
+                    <button
+                        class="secondary-button"
+                        type="button"
+                        onclick="closeModal()"
+                    >
+                        キャンセル
+                    </button>
+
+                    <button
+                        class="success-button"
+                        type="submit"
+                    >
+                        保存する
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const scheduleStorageKey =
+            "tabinoOkanSchedulesV3";
+
+        const todoStorageKey =
+            "tabinoOkanTodosV3";
+
+        const defaultSchedules = [
+            {
+                id: 1,
+                icon: "🍵",
+                name: "ひがし茶屋街",
+                dateTime: createFutureDateTime(30),
+                travelMinutes: 12,
+                mapQuery: "ひがし茶屋街",
+                started: false,
+                completed: false
+            },
+            {
+                id: 2,
+                icon: "🍣",
+                name: "寿司処〇〇",
+                dateTime: createFutureDateTime(150),
+                travelMinutes: 20,
+                mapQuery: "金沢駅",
+                started: false,
+                completed: false
+            },
+            {
+                id: 3,
+                icon: "🏨",
+                name: "ホテルに到着",
+                dateTime: createFutureDateTime(270),
+                travelMinutes: 18,
+                mapQuery: "金沢駅",
+                started: false,
+                completed: false
+            }
+        ];
+
+        const defaultTodos = [
+            {
+                id: 1,
+                icon: "🎁",
+                text: "お土産を購入する",
+                completed: false
+            },
+            {
+                id: 2,
+                icon: "🏨",
+                text: "ホテルにチェックインする",
+                completed: false
+            },
+            {
+                id: 3,
+                icon: "📷",
+                text: "旅行写真を撮る",
+                completed: false
+            }
+        ];
+
+        let schedules = loadData(
+            scheduleStorageKey,
+            defaultSchedules
+        );
+
+        let todos = loadData(
+            todoStorageKey,
+            defaultTodos
+        );
+
+        function createFutureDateTime(minutesLater) {
+            const date =
+                new Date(
+                    Date.now() +
+                    minutesLater * 60 * 1000
+                );
+
+            return toDateTimeLocalValue(date);
+        }
+
+        function toDateTimeLocalValue(date) {
+            const year = date.getFullYear();
+
+            const month = String(
+                date.getMonth() + 1
+            ).padStart(2, "0");
+
+            const day = String(
+                date.getDate()
+            ).padStart(2, "0");
+
+            const hours = String(
+                date.getHours()
+            ).padStart(2, "0");
+
+            const minutes = String(
+                date.getMinutes()
+            ).padStart(2, "0");
+
+            return (
+                year +
+                "-" +
+                month +
+                "-" +
+                day +
+                "T" +
+                hours +
+                ":" +
+                minutes
+            );
+        }
+
+        function loadData(key, defaultValue) {
+            try {
+                const savedValue =
+                    localStorage.getItem(key);
+
+                if (savedValue) {
+                    return JSON.parse(savedValue);
+                }
+            } catch (error) {
+                console.log(
+                    "保存データを読み込めませんでした",
+                    error
+                );
+            }
+
+            return structuredClone(defaultValue);
+        }
+
+        function saveSchedules() {
+            localStorage.setItem(
+                scheduleStorageKey,
+                JSON.stringify(schedules)
+            );
+        }
+
+        function saveTodos() {
+            localStorage.setItem(
+                todoStorageKey,
+                JSON.stringify(todos)
+            );
+        }
+
+        function getSortedSchedules() {
+            return [...schedules].sort(
+                function (a, b) {
+                    return (
+                        new Date(a.dateTime) -
+                        new Date(b.dateTime)
+                    );
+                }
+            );
+        }
+
+        function getNextEvent() {
+            const sortedSchedules =
+                getSortedSchedules();
+
+            return sortedSchedules.find(
+                function (event) {
+                    return !event.completed;
+                }
+            );
+        }
+
+        function formatDateTime(dateTimeText) {
+            const date = new Date(dateTimeText);
+
+            return new Intl.DateTimeFormat(
+                "ja-JP",
+                {
+                    month: "numeric",
+                    day: "numeric",
+                    weekday: "short",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            ).format(date);
+        }
+
+        function formatTime(date) {
+            return new Intl.DateTimeFormat(
+                "ja-JP",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            ).format(date);
+        }
+
+        function updateCurrentClock() {
+            const now = new Date();
+
+            document.getElementById(
+                "currentClock"
+            ).textContent =
+                "現在 " +
+                new Intl.DateTimeFormat(
+                    "ja-JP",
+                    {
+                        month: "numeric",
+                        day: "numeric",
+                        weekday: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit"
+                    }
+                ).format(now);
+        }
+
+        function getEventStatus(event) {
+            const now = new Date();
+
+            const arrivalTime =
+                new Date(event.dateTime);
+
+            const departureTime =
+                new Date(
+                    arrivalTime.getTime() -
+                    event.travelMinutes *
+                    60 *
+                    1000
+                );
+
+            const millisecondsUntilDeparture =
+                departureTime.getTime() -
+                now.getTime();
+
+            const minutesUntilDeparture =
+                Math.ceil(
+                    millisecondsUntilDeparture /
+                    60000
+                );
+
+            if (event.started) {
+                return {
+                    status: "moving",
+                    badge: "🚶 移動中",
+                    message:
+                        "目的地へ移動しています",
+                    departureTime,
+                    minutesUntilDeparture
+                };
+            }
+
+            if (minutesUntilDeparture <= 0) {
+                return {
+                    status: "danger",
+                    badge: "🚨 もう移動せなあかんで！",
+                    message:
+                        Math.abs(
+                            minutesUntilDeparture
+                        ) +
+                        "分超過しています",
+                    departureTime,
+                    minutesUntilDeparture
+                };
+            }
+
+            if (minutesUntilDeparture <= 15) {
+                return {
+                    status: "warning",
+                    badge: "🟡 そろそろ移動",
+                    message:
+                        "出発まであと" +
+                        minutesUntilDeparture +
+                        "分",
+                    departureTime,
+                    minutesUntilDeparture
+                };
+            }
+
+            return {
+                status: "safe",
+                badge: "🟢 余裕あり",
+                message:
+                    "出発まであと" +
+                    minutesUntilDeparture +
+                    "分",
+                departureTime,
+                minutesUntilDeparture
+            };
+        }
+
+        function applyStatus(status) {
+            document.body.className =
+                "status-" + status;
+
+            const colorData = {
+                safe: {
+                    color: "#2f9d68",
+                    light: "#e8f7ef"
+                },
+                warning: {
+                    color: "#8a6500",
+                    light: "#fff3c4"
+                },
+                danger: {
+                    color: "#c62828",
+                    light: "#ffe1df"
+                },
+                moving: {
+                    color: "#1769aa",
+                    light: "#e1f0ff"
+                }
+            };
+
+            document.documentElement.style
+                .setProperty(
+                    "--main-color",
+                    colorData[status].color
+                );
+
+            document.documentElement.style
+                .setProperty(
+                    "--main-light",
+                    colorData[status].light
+                );
+        }
+
+        function renderNextEvent() {
+            const area =
+                document.getElementById(
+                    "nextEventArea"
+                );
+
+            const event = getNextEvent();
+
+            if (!event) {
+                applyStatus("safe");
+
+                area.innerHTML = `
+                    <div class="empty-message">
+                        🎉 すべての予定が完了しました！<br>
+                        お疲れさまでした。
+                    </div>
+                `;
+
+                return;
+            }
+
+            const status =
+                getEventStatus(event);
+
+            applyStatus(status.status);
+
+            const mapDestination =
+                encodeURIComponent(
+                    event.mapQuery ||
+                    event.name
+                );
+
+            const startButtonText =
+                event.started
+                    ? "🚶 移動中です"
+                    : "🚶 移動開始";
+
+            area.innerHTML = `
+                <div class="status-badge">
+                    ${status.badge}
+                </div>
+
+                <div class="next-place">
+                    ${escapeHtml(event.icon)}
+                    ${escapeHtml(event.name)}
+                </div>
+
+                <div class="next-time">
+                    ${formatDateTime(event.dateTime)}
+                    到着・開始予定
+                </div>
+
+                <div class="leave-box">
+                    <div class="leave-row">
+                        <span class="leave-label">
+                            🚶 移動時間
+                        </span>
+
+                        <span class="leave-value">
+                            ${event.travelMinutes}分
+                        </span>
+                    </div>
+
+                    <div class="leave-row">
+                        <span class="leave-label">
+                            🏃 出発目安
+                        </span>
+
+                        <span class="leave-value">
+                            ${formatTime(status.departureTime)}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="countdown">
+                    ${status.message}
+                </div>
+
+                <div class="action-buttons">
+                    <button
+                        class="primary-button"
+                        type="button"
+                        onclick="toggleMoving(${event.id})"
+                    >
+                        ${startButtonText}
+                    </button>
+
+                    <button
+                        class="success-button"
+                        type="button"
+                        onclick="completeEvent(${event.id})"
+                    >
+                        ✅ 到着・完了
+                    </button>
+                </div>
+
+                <a
+                    class="link-button full-button"
+                    href="https://www.google.com/maps/search/?api=1&query=${mapDestination}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    🗺️ 地図を開く
+                </a>
+            `;
+        }
+
+        function renderSchedules() {
+            const list =
+                document.getElementById(
+                    "scheduleList"
+                );
+
+            const sortedSchedules =
+                getSortedSchedules();
+
+            if (sortedSchedules.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-message">
+                        予定がまだありません。<br>
+                        「＋予定追加」から登録できます。
+                    </div>
+                `;
+
+                return;
+            }
+
+            const nextEvent = getNextEvent();
+
+            list.innerHTML =
+                sortedSchedules.map(
+                    function (event) {
+                        let itemClass =
+                            "schedule-item";
+
+                        if (event.completed) {
+                            itemClass += " done";
+                        } else if (
+                            nextEvent &&
+                            event.id === nextEvent.id
+                        ) {
+                            itemClass += " current";
+                        }
+
+                        let statusText = "";
+
+                        if (event.completed) {
+                            statusText = "✅ 完了";
+                        } else if (event.started) {
+                            statusText = "🚶 移動中";
+                        } else {
+                            statusText = "未完了";
+                        }
+
+                        return `
+                            <div class="${itemClass}">
+                                <div class="schedule-icon">
+                                    ${escapeHtml(event.icon)}
+                                </div>
+
+                                <div>
+                                    <div class="schedule-name">
+                                        ${escapeHtml(event.name)}
+                                    </div>
+
+                                    <div class="schedule-time">
+                                        ${formatDateTime(event.dateTime)}
+                                        ・移動${event.travelMinutes}分
+                                    </div>
+
+                                    <div class="schedule-actions">
+                                        <button
+                                            class="mini-button secondary-button"
+                                            type="button"
+                                            onclick="editEvent(${event.id})"
+                                        >
+                                            ✏️ 編集
+                                        </button>
+
+                                        <button
+                                            class="mini-button danger-button"
+                                            type="button"
+                                            onclick="deleteEvent(${event.id})"
+                                        >
+                                            🗑️ 削除
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="schedule-status">
+                                    ${statusText}
+                                </div>
+                            </div>
+                        `;
+                    }
+                ).join("");
+        }
+
+        function renderTodos() {
+            const area =
+                document.getElementById(
+                    "todoList"
+                );
+
+            area.innerHTML =
+                todos.map(
+                    function (todo) {
+                        return `
+                            <label class="todo-item">
+                                <input
+                                    type="checkbox"
+                                    ${todo.completed
+                                        ? "checked"
+                                        : ""}
+                                    onchange="toggleTodo(${todo.id})"
+                                >
+
+                                <span>
+                                    ${escapeHtml(todo.icon)}
+                                    ${escapeHtml(todo.text)}
+                                </span>
+                            </label>
+                        `;
+                    }
+                ).join("");
+
+            const completedCount =
+                todos.filter(
+                    function (todo) {
+                        return todo.completed;
+                    }
+                ).length;
+
+            document.getElementById(
+                "todoProgress"
+            ).textContent =
+                completedCount +
+                " / " +
+                todos.length +
+                " 完了";
+        }
+
+        function renderAll() {
+            updateCurrentClock();
+            renderNextEvent();
+            renderSchedules();
+            renderTodos();
+        }
+
+        function toggleMoving(eventId) {
+            const event =
+                schedules.find(
+                    function (item) {
+                        return item.id === eventId;
+                    }
+                );
+
+            if (!event) {
+                return;
+            }
+
+            event.started = !event.started;
+
+            saveSchedules();
+            renderAll();
+        }
+
+        function completeEvent(eventId) {
+            const event =
+                schedules.find(
+                    function (item) {
+                        return item.id === eventId;
+                    }
+                );
+
+            if (!event) {
+                return;
+            }
+
+            event.started = false;
+            event.completed = true;
+
+            saveSchedules();
+            renderAll();
+        }
+
+        function toggleTodo(todoId) {
+            const todo =
+                todos.find(
+                    function (item) {
+                        return item.id === todoId;
+                    }
+                );
+
+            if (!todo) {
+                return;
+            }
+
+            todo.completed = !todo.completed;
+
+            saveTodos();
+            renderTodos();
+        }
+
+        function openAddModal() {
+            document.getElementById(
+                "modalTitle"
+            ).textContent =
+                "予定を追加";
+
+            document.getElementById(
+                "scheduleForm"
+            ).reset();
+
+            document.getElementById(
+                "eventId"
+            ).value = "";
+
+            document.getElementById(
+                "eventDateTime"
+            ).value =
+                createFutureDateTime(60);
+
+            document.getElementById(
+                "travelMinutes"
+            ).value = 15;
+
+            document.getElementById(
+                "scheduleModal"
+            ).classList.add("open");
+        }
+
+        function editEvent(eventId) {
+            const event =
+                schedules.find(
+                    function (item) {
+                        return item.id === eventId;
+                    }
+                );
+
+            if (!event) {
+                return;
+            }
+
+            document.getElementById(
+                "modalTitle"
+            ).textContent =
+                "予定を編集";
+
+            document.getElementById(
+                "eventId"
+            ).value =
+                event.id;
+
+            document.getElementById(
+                "eventIcon"
+            ).value =
+                event.icon;
+
+            document.getElementById(
+                "eventName"
+            ).value =
+                event.name;
+
+            document.getElementById(
+                "eventDateTime"
+            ).value =
+                event.dateTime;
+
+            document.getElementById(
+                "travelMinutes"
+            ).value =
+                event.travelMinutes;
+
+            document.getElementById(
+                "mapQuery"
+            ).value =
+                event.mapQuery || "";
+
+            document.getElementById(
+                "scheduleModal"
+            ).classList.add("open");
+        }
+
+        function closeModal() {
+            document.getElementById(
+                "scheduleModal"
+            ).classList.remove("open");
+        }
+
+        function deleteEvent(eventId) {
+            const event =
+                schedules.find(
+                    function (item) {
+                        return item.id === eventId;
+                    }
+                );
+
+            if (!event) {
+                return;
+            }
+
+            const shouldDelete =
+                window.confirm(
+                    "「" +
+                    event.name +
+                    "」を削除しますか？"
+                );
+
+            if (!shouldDelete) {
+                return;
+            }
+
+            schedules =
+                schedules.filter(
+                    function (item) {
+                        return item.id !== eventId;
+                    }
+                );
+
+            saveSchedules();
+            renderAll();
+        }
+
+        document.getElementById(
+            "scheduleForm"
+        ).addEventListener(
+            "submit",
+            function (eventObject) {
+                eventObject.preventDefault();
+
+                const idValue =
+                    document.getElementById(
+                        "eventId"
+                    ).value;
+
+                const formData = {
+                    icon:
+                        document.getElementById(
+                            "eventIcon"
+                        ).value,
+
+                    name:
+                        document.getElementById(
+                            "eventName"
+                        ).value.trim(),
+
+                    dateTime:
+                        document.getElementById(
+                            "eventDateTime"
+                        ).value,
+
+                    travelMinutes:
+                        Number(
+                            document.getElementById(
+                                "travelMinutes"
+                            ).value
+                        ),
+
+                    mapQuery:
+                        document.getElementById(
+                            "mapQuery"
+                        ).value.trim()
+                };
+
+                if (idValue) {
+                    const existingEvent =
+                        schedules.find(
+                            function (item) {
+                                return (
+                                    item.id ===
+                                    Number(idValue)
+                                );
+                            }
+                        );
+
+                    if (existingEvent) {
+                        existingEvent.icon =
+                            formData.icon;
+
+                        existingEvent.name =
+                            formData.name;
+
+                        existingEvent.dateTime =
+                            formData.dateTime;
+
+                        existingEvent.travelMinutes =
+                            formData.travelMinutes;
+
+                        existingEvent.mapQuery =
+                            formData.mapQuery;
+                    }
+                } else {
+                    schedules.push({
+                        id: Date.now(),
+                        ...formData,
+                        started: false,
+                        completed: false
+                    });
+                }
+
+                saveSchedules();
+                closeModal();
+                renderAll();
+            }
+        );
+
+        document.getElementById(
+            "scheduleModal"
+        ).addEventListener(
+            "click",
+            function (eventObject) {
+                if (
+                    eventObject.target.id ===
+                    "scheduleModal"
+                ) {
+                    closeModal();
+                }
+            }
+        );
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        renderAll();
+
+        setInterval(
+            function () {
+                updateCurrentClock();
+                renderNextEvent();
+            },
+            1000
+        );
+    </script>
+
+</body>
+</html>
