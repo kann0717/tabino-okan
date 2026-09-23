@@ -87,7 +87,7 @@ expenseForm.onsubmit=e=>{e.preventDefault();const eventId=Number(expenseEventId.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-const firebaseConfig={apiKey:"AIzaSyAKFvCcb3C_9BphQOhGw7LoSHYj7Bu2mY",authDomain:"tabino-okan.firebaseapp.com",projectId:"tabino-okan",storageBucket:"tabino-okan.firebasestorage.app",messagingSenderId:"161334931545",appId:"1:161334931545:web:f0f621852da392f5110148",measurementId:"G-87ZJVFPNV1"};
+const firebaseConfig={apiKey:"AIzaSyAKFvCcD3c_9BphQOhgw7LosHYjY7Bu2mY",authDomain:"tabino-okan.firebaseapp.com",projectId:"tabino-okan",storageBucket:"tabino-okan.firebasestorage.app",messagingSenderId:"161334931545",appId:"1:161334931545:web:f0f621852da392f5110148",measurementId:"G-87ZJVFPNV1"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 let uid='',saveTimer=null;
 function tripRef(code){return doc(db,'trips',code)}
